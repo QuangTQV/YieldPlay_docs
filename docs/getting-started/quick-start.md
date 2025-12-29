@@ -1,97 +1,95 @@
 ---
-description: Get started with YieldPlay SDK in 5 minutes
+description: Get started with YieldPlay API in 5 minutes
 ---
 
 # Quick Start
 
-Get your first prize pool running in 5 minutes.
+Get your first prize pool running in 5 minutes using the REST API.
 
 ## Prerequisites
 
 * API Key (get from [dashboard](https://dashboard.yieldplay.io))
-* Node.js 16+ or Python 3.8+
+* HTTP client (fetch, axios, requests, etc.)
 
-## Installation
+## API Setup
 
-{% tabs %}
-{% tab title="JavaScript" %}
-```bash
-npm install @yieldplay/sdk
+### Base URL
+
 ```
-{% endtab %}
-
-{% tab title="Python" %}
-```bash
-pip install yieldplay-sdk
+Production: https://api.yieldplay.io
+Sandbox: https://sandbox-api.yieldplay.io
 ```
-{% endtab %}
-{% endtabs %}
 
-## Initialize SDK
+### Authentication
 
-{% tabs %}
-{% tab title="JavaScript" %}
-```javascript
-const YieldPlay = require('@yieldplay/sdk');
+All requests require your Builder API Key:
 
-const sdk = new YieldPlay({
-  apiKey: process.env.YIELDPLAY_API_KEY,
-  environment: 'production' // or 'sandbox'
-});
 ```
-{% endtab %}
-
-{% tab title="Python" %}
-```python
-from yieldplay import YieldPlay
-
-sdk = YieldPlay(
-    api_key=os.getenv('YIELDPLAY_API_KEY'),
-    environment='production'  # or 'sandbox'
-)
+X-API-Key: your_builder_api_key
 ```
-{% endtab %}
-{% endtabs %}
 
 ## Basic Flow
 
 ### 1. Create a User
 
 ```javascript
-const user = await sdk.users.create({
-  walletAddress: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
-  username: "player1"
+const response = await fetch('https://api.yieldplay.io/api/v1/users', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': process.env.YIELDPLAY_API_KEY
+  },
+  body: JSON.stringify({
+    wallet_address: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+    username: "player1"
+  })
 });
 
+const user = await response.json();
 console.log('User created:', user.id);
 ```
 
 ### 2. Create a Pool
 
 ```javascript
-const pool = await sdk.pools.create({
-  name: "Daily Tournament",
-  ticketBasePrice: 10,
-  ticketPriceJump: 0.1,
-  startTime: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
-  endTime: Math.floor(Date.now() / 1000) + 86400   // 24 hours from now
+const response = await fetch('https://api.yieldplay.io/api/v1/pools', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': process.env.YIELDPLAY_API_KEY
+  },
+  body: JSON.stringify({
+    name: "Daily Tournament",
+    ticket_base_price: 10,
+    ticket_price_jump: 0.1,
+    start_time: Math.floor(Date.now() / 1000) + 3600,
+    end_time: Math.floor(Date.now() / 1000) + 86400
+  })
 });
 
+const pool = await response.json();
 console.log('Pool created:', pool.id);
 ```
 
 ### 3. Player Stakes
 
 ```javascript
-// User enters the pool
-const stakeResult = await sdk.transactions.enter({
-  userId: user.id,
-  poolId: pool.id,
-  amount: 100 // USDC
+const response = await fetch('https://api.yieldplay.io/api/v1/transactions/enter', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': process.env.YIELDPLAY_API_KEY
+  },
+  body: JSON.stringify({
+    user_id: user.id,
+    pool_id: pool.id,
+    amount: 100
+  })
 });
 
-// Client must sign this transaction
-console.log('Stake transaction:', stakeResult.serialized_transaction);
+const stakeResult = await response.json();
+console.log('Stake transaction:', stakeResult.data.serialized_transaction);
+// Client must sign and submit this transaction on-chain
 ```
 
 ### 4. Your Game Runs
@@ -105,11 +103,16 @@ const winners = gameResults.topPlayers;
 ### 5. Check Leaderboard
 
 ```javascript
-const leaderboard = await sdk.pools.getLeaderboard({
-  poolId: pool.id,
-  limit: 10
-});
+const response = await fetch(
+  `https://api.yieldplay.io/api/v1/pools/${pool.id}/leaderboard?limit=10`,
+  {
+    headers: {
+      'X-API-Key': process.env.YIELDPLAY_API_KEY
+    }
+  }
+);
 
+const leaderboard = await response.json();
 console.log('Top players:', leaderboard.users);
 ```
 
@@ -117,30 +120,59 @@ console.log('Top players:', leaderboard.users);
 
 ```javascript
 // Step 1: Request VRF randomness
-await sdk.winners.requestRandomness({ poolId: pool.id });
+await fetch('https://api.yieldplay.io/api/v1/pools/winners/request-randomness', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': process.env.YIELDPLAY_API_KEY
+  },
+  body: JSON.stringify({ pool_id: pool.id })
+});
 
 // Step 2: Wait for oracle (~30 seconds)
 await new Promise(resolve => setTimeout(resolve, 30000));
 
 // Step 3: Fulfill randomness  
-await sdk.winners.fulfillRandomness({ poolId: pool.id });
+await fetch('https://api.yieldplay.io/api/v1/pools/winners/fulfill-randomness', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': process.env.YIELDPLAY_API_KEY
+  },
+  body: JSON.stringify({ pool_id: pool.id })
+});
 
 // Step 4: Choose winners
-const result = await sdk.winners.choose({ poolId: pool.id });
+const response = await fetch('https://api.yieldplay.io/api/v1/pools/winners/choose', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': process.env.YIELDPLAY_API_KEY
+  },
+  body: JSON.stringify({ pool_id: pool.id })
+});
 
+const result = await response.json();
 console.log('Winners chosen!', result);
 ```
 
 ### 7. Winners Claim Rewards
 
 ```javascript
-// Winner claims their prize
-const claimResult = await sdk.transactions.claim({
-  userId: winner.id,
-  poolId: pool.id,
-  amount: prizeAmount
+const response = await fetch('https://api.yieldplay.io/api/v1/transactions/claim', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': process.env.YIELDPLAY_API_KEY
+  },
+  body: JSON.stringify({
+    user_id: winner.id,
+    pool_id: pool.id,
+    amount: prizeAmount
+  })
 });
 
+const claimResult = await response.json();
 console.log('Prize claimed:', claimResult);
 ```
 
@@ -149,64 +181,87 @@ console.log('Prize claimed:', claimResult);
 Here's a complete example with error handling:
 
 ```javascript
-const YieldPlay = require('@yieldplay/sdk');
+const YIELDPLAY_API = 'https://api.yieldplay.io';
+const API_KEY = process.env.YIELDPLAY_API_KEY;
+
+async function apiCall(endpoint, method = 'GET', body = null) {
+  const options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': API_KEY
+    }
+  };
+  
+  if (body) {
+    options.body = JSON.stringify(body);
+  }
+  
+  const response = await fetch(`${YIELDPLAY_API}${endpoint}`, options);
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'API request failed');
+  }
+  
+  return response.json();
+}
 
 async function runTournament() {
-  const sdk = new YieldPlay({
-    apiKey: process.env.YIELDPLAY_API_KEY
-  });
-
   try {
     // 1. Create user
-    const user = await sdk.users.create({
-      walletAddress: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
+    const user = await apiCall('/api/v1/users', 'POST', {
+      wallet_address: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
       username: "player1"
     });
     console.log('✓ User created:', user.id);
 
     // 2. Create pool
-    const pool = await sdk.pools.create({
+    const pool = await apiCall('/api/v1/pools', 'POST', {
       name: "Evening Tournament",
-      ticketBasePrice: 10,
-      ticketPriceJump: 0.1,
-      startTime: Math.floor(Date.now() / 1000) + 300,
-      endTime: Math.floor(Date.now() / 1000) + 3600
+      ticket_base_price: 10,
+      ticket_price_jump: 0.1,
+      start_time: Math.floor(Date.now() / 1000) + 300,
+      end_time: Math.floor(Date.now() / 1000) + 3600
     });
     console.log('✓ Pool created:', pool.id);
 
     // 3. Player enters
-    const stakeResult = await sdk.transactions.enter({
-      userId: user.id,
-      poolId: pool.id,
+    const stakeResult = await apiCall('/api/v1/transactions/enter', 'POST', {
+      user_id: user.id,
+      pool_id: pool.id,
       amount: 10
     });
     console.log('✓ Stake transaction created');
-    
-    // In real app: client signs and submits this transaction
-    // await wallet.signAndSend(stakeResult.serialized_transaction);
 
     // 4. Your game logic runs here
     console.log('✓ Game running...');
 
     // 5. Wait for pool to end
     console.log('✓ Waiting for pool to end...');
-    const waitTime = (pool.endTime * 1000) - Date.now();
+    const waitTime = (pool.end_time * 1000) - Date.now();
     if (waitTime > 0) {
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
 
     // 6. Choose winners (3-step process)
     console.log('✓ Requesting randomness...');
-    await sdk.winners.requestRandomness({ poolId: pool.id });
+    await apiCall('/api/v1/pools/winners/request-randomness', 'POST', {
+      pool_id: pool.id
+    });
     
     console.log('✓ Waiting for oracle...');
     await new Promise(resolve => setTimeout(resolve, 30000));
     
     console.log('✓ Fulfilling randomness...');
-    await sdk.winners.fulfillRandomness({ poolId: pool.id });
+    await apiCall('/api/v1/pools/winners/fulfill-randomness', 'POST', {
+      pool_id: pool.id
+    });
     
     console.log('✓ Choosing winners...');
-    await sdk.winners.choose({ poolId: pool.id });
+    await apiCall('/api/v1/pools/winners/choose', 'POST', {
+      pool_id: pool.id
+    });
 
     console.log('🎉 Tournament complete!');
 
@@ -218,15 +273,55 @@ async function runTournament() {
 runTournament();
 ```
 
+## Python Example
+
+```python
+import requests
+import os
+import time
+
+YIELDPLAY_API = 'https://api.yieldplay.io'
+API_KEY = os.getenv('YIELDPLAY_API_KEY')
+
+def api_call(endpoint, method='GET', json=None):
+    headers = {
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    }
+    
+    url = f'{YIELDPLAY_API}{endpoint}'
+    response = requests.request(method, url, headers=headers, json=json)
+    
+    if not response.ok:
+        error = response.json()
+        raise Exception(error.get('detail', 'API request failed'))
+    
+    return response.json()
+
+# Create user
+user = api_call('/api/v1/users', 'POST', {
+    'wallet_address': '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',
+    'username': 'player1'
+})
+
+# Create pool
+pool = api_call('/api/v1/pools', 'POST', {
+    'name': 'Daily Tournament',
+    'ticket_base_price': 10,
+    'ticket_price_jump': 0.1,
+    'start_time': int(time.time()) + 3600,
+    'end_time': int(time.time()) + 86400
+})
+
+print(f'Pool created: {pool["id"]}')
+```
+
 ## Testing in Sandbox
 
 Use sandbox environment for testing:
 
 ```javascript
-const sdk = new YieldPlay({
-  apiKey: process.env.YIELDPLAY_SANDBOX_KEY,
-  environment: 'sandbox'
-});
+const YIELDPLAY_API = 'https://sandbox-api.yieldplay.io';
 ```
 
 Sandbox features:
@@ -252,44 +347,6 @@ All API responses follow this structure:
 {
   "detail": "Pool not found"
 }
-```
-
-## Common Patterns
-
-### Creating Multiple Users
-
-```javascript
-const users = await Promise.all([
-  sdk.users.create({ walletAddress: wallet1, username: "player1" }),
-  sdk.users.create({ walletAddress: wallet2, username: "player2" }),
-  sdk.users.create({ walletAddress: wallet3, username: "player3" })
-]);
-```
-
-### Getting Pool Statistics
-
-```javascript
-const stats = await sdk.pools.getStatistics({ poolId: pool.id });
-console.log({
-  totalStaked: stats.total_staked,
-  participants: stats.total_participants,
-  tickets: stats.total_tickets
-});
-```
-
-### Checking User's Position
-
-```javascript
-const userInfo = await sdk.pools.getUserInfo({
-  poolId: pool.id,
-  userId: user.id
-});
-
-console.log({
-  rank: userInfo.rank,
-  tickets: userInfo.tickets,
-  winProbability: userInfo.win_probability
-});
 ```
 
 ## Next Steps

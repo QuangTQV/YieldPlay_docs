@@ -1,38 +1,112 @@
 # Prize Distribution
 
-How prizes are calculated and distributed to winners.
+How prizes are calculated and distributed in a **no-loss, yield-backed pool**.
+
+---
 
 ## Distribution Model
 
 ### Winners (Top 3)
-- **1st Place**: Original stake + 50% of yield
-- **2nd Place**: Original stake + 30% of yield
-- **3rd Place**: Original stake + 20% of yield
 
-### Losers
-- Original stake - optional boost fee (if used)
+Winners receive their **remaining stake after participation fee** plus a share of the **reward pool**, funded by **DeFi yield and participation fees**.
 
-### Platform
-- 2-5% of yield pool
+* **1st Place**: Net stake + **50% of winners’ reward pool**
+* **2nd Place**: Net stake + **30% of winners’ reward pool**
+* **3rd Place**: Net stake + **20% of winners’ reward pool**
+
+> Reward splits can be customized per game or tournament.
+
+---
+
+### Non-Winning Participants
+
+* Receive their **net stake after fee**
+* No additional loss beyond the **0.5% participation fee**
+
+This preserves the **no-loss principle**, with a clearly defined and limited cost of participation.
+
+---
+
+### Platform & Game Studio
+
+The **reward pool** (not player principal) is allocated transparently:
+
+* **4%** → Game Studio
+* **3%** → YieldPlay
+* **Remaining portion** → Distributed to winners
+
+---
 
 ## Example
 
-Pool with 100 players × $100 stake:
-- Total staked: $10,000
-- Yield generated: $500
-- Platform fee (3%): $15
-- Prize pool: $485
+### Pool Setup (1 Month)
 
-**Payouts:**
-- 1st: $100 + $242.50 = $342.50
-- 2nd: $100 + $145.50 = $245.50
-- 3rd: $100 + $97.00 = $197.00
-- Others: $100 - $2 boost fee = $98.00
+* Players: **100**
+* Stake per player: **$1,000**
+* Participation fee (0.5%): **$5**
+* **Net stake per player:** **$995**
 
-## Fair Selection
+**Total staked (TVL):**
 
-Winners are selected using VRF (Verifiable Random Function) from Chainlink/ORAO oracle, ensuring:
-- Provably random
-- Tamper-proof
-- Transparent
-- Auditable
+* $995 × 100 = **$99,500**
+
+---
+
+### Rewards Generated
+
+* DeFi yield (~0.5% / month): **$500**
+* Total participation fees: **$500**
+
+**Total reward pool:** **$1,000**
+
+---
+
+### Reward Allocation
+
+* Game Studio (4%): **$40**
+* YieldPlay (3%): **$30**
+* Winners’ reward pool: **$930**
+
+---
+
+### Payouts
+
+* **1st Place**
+
+  * Reward: $465
+  * **Total received:** $995 + $465 = **$1,460**
+
+* **2nd Place**
+
+  * Reward: $279
+  * **Total received:** $995 + $279 = **$1,274**
+
+* **3rd Place**
+
+  * Reward: $186
+  * **Total received:** $995 + $186 = **$1,181**
+
+* **Non-winners**
+
+  * **$995 returned** (no further loss)
+
+---
+
+## Fair Winner Selection
+
+Winners are selected using **Verifiable Random Function (VRF)** powered by on-chain oracles (e.g. ORAO), ensuring:
+
+* Provable randomness
+* Tamper resistance
+* Transparency and auditability
+
+---
+
+## Key Takeaways
+
+* Maximum downside per player is **explicitly capped at 0.5%**
+* No principal is used for rewards
+* Yield + fees fund prizes sustainably
+* Monetization aligns with engagement, not extraction
+
+

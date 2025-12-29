@@ -22,6 +22,5 @@ This $9.59 becomes the prize pool (minus platform fees).
 
 ## Supported Protocols
 
-- Aave (Ethereum, Polygon, Arbitrum)
-- Compound (Ethereum)
+- Jupiter
 - More coming soon

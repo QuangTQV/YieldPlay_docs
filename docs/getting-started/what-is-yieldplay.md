@@ -92,7 +92,7 @@ Players stake → DeFi generates yield → Yield becomes prizes
 ┌─────────────────────────────────────────────┐
 │ Step 2: DeFi Generates Yield                │
 │                                             │
-│  $100 → Aave/Compound → Generates $5 yield  │
+│  $100 → lending protocol → Generates $5 yield  │
 │                                             │
 └─────────────────────────────────────────────┘
                     ↓

@@ -5,7 +5,7 @@ A prize pool is a collection of staked funds that generates yield to fund prizes
 ## How Prize Pools Work
 
 1. Players stake money into the pool
-2. Staked funds are deposited into DeFi protocols (Aave, Compound)
+2. Staked funds are deposited into DeFi protocols (jupiter)
 3. DeFi generates yield over time
 4. Yield becomes the prize pool
 5. Winners receive prizes, losers get refunds
